@@ -497,6 +497,19 @@ mainwnd::~mainwnd()
 bool
 mainwnd::timer_callback(  )
 {
+#ifdef JACK_SUPPORT
+    if(m_mainperf->m_jack_running && !global_is_running)
+    {
+        jack_transport_state_t state = jack_transport_query( m_mainperf->m_jack_client, nullptr );
+        if(state == JackTransportRolling || state == JackTransportStarting )
+        {
+            m_mainperf->m_jack_transport_state_last = JackTransportStarting;
+            m_mainperf->inner_start( global_song_start_mode );
+            //printf("JackTransportState [%d]\n",m_mainperf->m_jack_transport_state);
+        }
+    }
+#endif // JACK_SUPPORT
+
     m_perfroll->redraw_dirty_tracks();
     m_perfroll->draw_progress();
     m_perfnames->redraw_dirty_tracks();

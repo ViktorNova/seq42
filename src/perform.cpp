@@ -135,8 +135,8 @@ void perform::init_jack()
             }
 
             jack_on_shutdown( m_jack_client, jack_shutdown,(void *) this );
-            jack_set_sync_callback(m_jack_client, jack_sync_callback,
-                                   (void *) this );
+//            jack_set_sync_callback(m_jack_client, jack_sync_callback,
+//                                   (void *) this );
             jack_set_process_callback(m_jack_client, jack_process_callback, NULL);
 #ifdef JACK_SESSION
             if (jack_set_session_callback)
@@ -152,6 +152,7 @@ void perform::init_jack()
             {
                 printf("[JACK transport master]\n");
                 m_jack_master = true;
+                m_jack_frame_rate = jack_get_sample_rate( m_jack_client ) ;
             }
             else
             {
@@ -167,6 +168,26 @@ void perform::init_jack()
         }
         while (0);
     }
+    /*
+        The call to jack_timebase_callback() to supply jack with BBT, etc would
+        occasionally fail when the *pos information had zero or some garbage in
+        the pos.frame_rate variable. This would occur when there was a rapid change
+        of frame position by another client... i.e. qjackctl.
+        From the jack API:
+
+        "   pos	address of the position structure for the next cycle;
+            pos->frame will be its frame number. If new_pos is FALSE,
+            this structure contains extended position information from the current cycle.
+            If TRUE, it contains whatever was set by the requester.
+            The timebase_callback's task is to update the extended information here."
+
+        The "If TRUE" line seems to be the issue. It seems that qjackctl does not
+        always set pos.frame_rate so we get garbage and some strange BBT calculations
+        that display in qjackctl. So we need to set it here and just use m_jack_frame_rate
+        for calculations instead of pos.frame_rate.
+
+        Set when JACK transport master above...
+    */
 
 #endif // JACK_SUPPORT
 }
@@ -1721,7 +1742,7 @@ void perform::output_func()
                 {
                     m_jack_frame_last = m_jack_frame_current;
 
-                    //printf ("[Start Playback]\n" );
+                    //printf ("[Start Playback]\n");
                     dumping = true;
                     m_jack_tick =
                         m_jack_pos.frame *
@@ -1748,8 +1769,6 @@ void perform::output_func()
                             {
                                 double size = get_right_tick() - get_left_tick();
                                 current_tick = current_tick - size;
-
-                                //printf( "> current_tick[%lf]\n", current_tick );
                             }
                                // reset_sequences();
                             off_sequences();
@@ -2171,10 +2190,10 @@ void jack_timebase_callback(jack_transport_state_t state,
     static double jack_tick;
     static jack_nframes_t last_frame;
     static jack_nframes_t current_frame;
-    static jack_transport_state_t state_current;
-    static jack_transport_state_t state_last;
+//    static jack_transport_state_t state_current;
+//    static jack_transport_state_t state_last;
 
-    state_current = state;
+//    state_current = state;
 
     perform *p = (perform *) arg;
     current_frame = jack_get_current_transport_frame( p->m_jack_client );
@@ -2193,8 +2212,9 @@ void jack_timebase_callback(jack_transport_state_t state,
      * transport timeline. */
 
     // if we are in a new position
-    if (  state_last    ==  JackTransportStarting &&
-            state_current ==  JackTransportRolling )
+//    if (  state_last    ==  JackTransportStarting &&
+//            state_current ==  JackTransportRolling )
+    if(new_pos)
     {
         //printf ( "Starting [%d] [%d]\n", last_frame, current_frame );
 
@@ -2207,10 +2227,17 @@ void jack_timebase_callback(jack_transport_state_t state,
         double jack_delta_tick =
             (current_frame) *
             pos->ticks_per_beat *
-            pos->beats_per_minute / (pos->frame_rate * 60.0);
+            pos->beats_per_minute / (p->m_jack_frame_rate * 60.0);
+//            pos->beats_per_minute / (pos->frame_rate * 60.0);
+
+        //printf("ticks_beat[%f]: bpm[%f]: frame_rate[%d]\n", pos->ticks_per_beat,
+        //        pos->beats_per_minute,p->m_jack_frame_rate);
+
 
         jack_tick = (jack_delta_tick < 0) ? -jack_delta_tick : jack_delta_tick;
     }
+
+    //printf("jack_tick [%f]: jack_delta_tick[%f]\n", jack_tick, jack_delta_tick);
 
     long ptick = 0, pbeat = 0, pbar = 0;
 
@@ -2229,7 +2256,7 @@ void jack_timebase_callback(jack_transport_state_t state,
 
     //printf( " bbb [%2d:%2d:%4d]\n", pos->bar, pos->beat, pos->tick );
 
-    state_last = state_current;
+//    state_last = state_current;
 }
 
 

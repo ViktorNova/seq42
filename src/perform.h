@@ -121,12 +121,13 @@ private:
 
     condition_var m_condition_var;
     mutex m_mutex;
-
+public:
 #ifdef JACK_SUPPORT
 
     jack_client_t *m_jack_client;
     jack_nframes_t m_jack_frame_current,
-                   m_jack_frame_last;
+                   m_jack_frame_last,
+                   m_jack_frame_rate;
     jack_position_t m_jack_pos;
     jack_transport_state_t m_jack_transport_state;
     jack_transport_state_t m_jack_transport_state_last;
@@ -139,15 +140,16 @@ private:
 #endif
 #endif
 
-    bool m_jack_running;
+//    bool m_jack_running;
     bool m_toggle_jack;
     bool m_jack_master;
 
-    void inner_start( bool a_state );
+//    void inner_start( bool a_state );
     void inner_stop();
 
 public:
-
+    bool m_jack_running;
+    void inner_start( bool a_state );
     /* used for undo/redo vector */
     vector<undo_type> undo_vect;
     vector<undo_type> redo_vect;
