@@ -86,6 +86,9 @@ private:
     bool m_editing;
     bool m_raise;
 
+    /* close for new or open file */
+    bool m_delete;
+
     /* named sequence */
     string m_name;
 
@@ -198,6 +201,15 @@ public:
     bool get_raise ()
     {
         return m_raise;
+    };
+
+    void set_delete (bool a_delete)
+    {
+        m_delete = a_delete;
+    };
+    bool get_delete ()
+    {
+        return m_delete;
     };
 
     /* length in ticks */

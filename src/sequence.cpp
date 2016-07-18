@@ -36,6 +36,8 @@ sequence::sequence( ) :
     m_editing(false),
     m_raise(false),
 
+    m_delete(false),
+
     m_name(c_dummy),
 
     m_swing_mode(c_no_swing),

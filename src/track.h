@@ -55,6 +55,9 @@ private:
     bool m_editing;
     bool m_raise;
 
+    /* delete track if new or open file */
+    bool m_delete;
+
     /* contains the proper midi channel */
     char m_midi_channel;
     char m_bus;
@@ -188,16 +191,13 @@ public:
     bool get_next_trigger (long *a_tick_on, long *a_tick_off, bool * a_selected, long *a_tick_offset, int *a_seq_idx);
 
     /* Return true if at least one of this track's sequences is being edited. */
-    bool get_sequence_editing();
+    bool get_sequence_editing(bool a_clear = false);
 
     void set_editing( bool a_edit )
     {
         m_editing = a_edit;
     };
-    bool get_editing()
-    {
-        return m_editing;
-    };
+    bool get_editing(bool a_clear = false);
 
     void set_raise( bool a_raise )
     {
@@ -206,6 +206,15 @@ public:
     bool get_raise()
     {
         return m_raise;
+    };
+
+    void set_delete( bool a_clear)
+    {
+        m_delete = a_clear;
+    };
+    bool get_delete()
+    {
+        return m_delete;
     };
 
     void reset_sequences(bool a_playback_mode);

@@ -196,7 +196,7 @@ public:
 
     void init();
 
-    void clear_all();
+    bool clear_all();
 
     void launch_input_thread();
     void launch_output_thread();
@@ -204,9 +204,9 @@ public:
     void deinit_jack();
 
     void add_track( track *a_track, int a_pref );
-    void delete_track( int a_num );
+    void delete_track( int a_num, bool a_clear = false );
 
-    bool is_track_in_edit( int a_num );
+    bool is_track_in_edit( int a_num, bool a_clear = false );
     int get_track_index( track * a_track );
 
     void clear_track_triggers( int a_num  );

@@ -26,6 +26,7 @@ track::track()
 {
     m_editing = false;
     m_raise = false;
+    m_delete = false;
     m_name = c_dummy;
     m_bus = 0;
     m_midi_channel = 0;
@@ -240,17 +241,42 @@ track::is_dirty_perf( )
 }
 
 bool
-track::get_sequence_editing()
+track::get_sequence_editing(bool a_clear)
 {
     // Return true if at least one of this track's sequences is being edited.
+    // or delete it if we have a clear
     for(unsigned i=0; i<m_vector_sequence.size(); i++)
     {
         if(m_vector_sequence[i]->get_editing())
         {
-            return true;
+            if(a_clear)
+            {
+                printf("get_sequence_editing\n");
+                m_vector_sequence[i]->set_editing(false);
+                m_vector_sequence[i]->set_delete(a_clear);
+            }
+            else
+            {
+                return true;
+            }
         }
     }
     return false;
+}
+
+bool
+track::get_editing(bool a_clear)
+{
+    if(a_clear)
+    {
+        set_editing(false);
+        set_delete(a_clear);
+        return false;
+    }
+    else
+    {
+        return m_editing;
+    }
 }
 
 void

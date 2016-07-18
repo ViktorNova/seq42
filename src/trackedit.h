@@ -74,6 +74,7 @@ private:
 
     void on_realize();
     bool timeout();
+    sigc::connection conn;
 
 public:
 

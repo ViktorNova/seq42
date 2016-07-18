@@ -124,7 +124,7 @@ trackedit::~trackedit()
 bool
 trackedit::on_delete_event(GdkEventAny *a_event)
 {
-    //printf( "trackedit::on_delete_event()\n" );
+    printf( "trackedit::on_delete_event()\n" );
     m_track->set_editing( false );
     delete this;
     m_track = NULL;
@@ -136,13 +136,21 @@ trackedit::on_realize()
 {
     // we need to do the default realize
     Gtk::Window::on_realize();
-    Glib::signal_timeout().connect(mem_fun(*this, &trackedit::timeout),
+    conn = Glib::signal_timeout().connect(mem_fun(*this, &trackedit::timeout),
                                    c_redraw_ms);
 }
 
 bool
 trackedit::timeout()
 {
+    if( m_track->get_delete())
+    {
+        printf("trackedit timeout delete\n");
+        m_track->set_delete(false);
+        on_delete_event(NULL);
+        return false;
+    }
+
     if (m_track->get_raise())
     {
         m_track->set_raise(false);

@@ -236,15 +236,18 @@ void perform::deinit_jack()
 #endif // JACK_SUPPORT
 }
 
-void perform::clear_all()
+bool perform::clear_all()
 {
+    printf("clear all\n");
+
     reset_sequences();
 
     for (int i=0; i< c_max_track; i++ )
     {
         if ( is_active_track(i) )
-            delete_track( i );
+            delete_track( i , true); // true means close if editing and delete
     }
+    return false;
 }
 
 track* perform::get_track( int a_trk )
@@ -658,10 +661,10 @@ int  perform::get_swing_amount16( )
     return m_master_bus.get_swing_amount16();
 }
 
-void perform::delete_track( int a_num )
+void perform::delete_track( int a_num, bool a_clear )
 {
     if ( m_tracks[a_num] != NULL &&
-            !is_track_in_edit(a_num) )
+            !is_track_in_edit(a_num, a_clear) )
     {
         set_active(a_num, false);
         m_tracks[a_num]->set_playing_off( );
@@ -670,11 +673,29 @@ void perform::delete_track( int a_num )
     }
 }
 
-bool perform::is_track_in_edit( int a_num )
+bool perform::is_track_in_edit( int a_num, bool a_clear )
 {
-    return ( (m_tracks[a_num] != NULL) &&
-             ( m_tracks[a_num]->get_editing() ||  m_tracks[a_num]->get_sequence_editing() )
-           );
+//    m_mutex.lock();
+    bool ret = false;
+
+    if((m_tracks[a_num] != NULL))
+    {
+        ret = m_tracks[a_num]->get_editing(a_clear);
+
+        if(!ret)
+        {
+            ret = m_tracks[a_num]->get_sequence_editing(a_clear);
+        }
+    }
+
+//    m_mutex.unlock();
+
+    return ret;
+
+    //return ( (m_tracks[a_num] != NULL) &&
+    //         ( m_tracks[a_num]->get_editing(a_clear) ||  m_tracks[a_num]->get_sequence_editing(a_clear) )
+    //       );
+
 }
 
 void perform::new_track( int a_track )

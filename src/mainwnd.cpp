@@ -1186,40 +1186,41 @@ void mainwnd::open_file(const Glib::ustring& fn)
 {
     bool result;
 
-    m_mainperf->clear_all();
-
-    set_xpose(0);
-    m_mainperf->undo_vect.clear();
-    m_mainperf->redo_vect.clear();
-    m_mainperf->set_have_undo();
-    m_mainperf->set_have_redo();
-
-    result = m_mainperf->load(fn);
-
-    global_is_modified = !result;
-
-    if (!result)
+    if(m_mainperf->clear_all())
     {
-        Gtk::MessageDialog errdialog
-        (
-            *this,
-            "Error reading file: " + fn,
-            false,
-            Gtk::MESSAGE_ERROR, Gtk::BUTTONS_OK,
-            true
-        );
-        errdialog.run();
-        return;
+        set_xpose(0);
+        m_mainperf->undo_vect.clear();
+        m_mainperf->redo_vect.clear();
+        m_mainperf->set_have_undo();
+        m_mainperf->set_have_redo();
+
+        result = m_mainperf->load(fn);
+
+        global_is_modified = !result;
+
+        if (!result)
+        {
+            Gtk::MessageDialog errdialog
+            (
+                *this,
+                "Error reading file: " + fn,
+                false,
+                Gtk::MESSAGE_ERROR, Gtk::BUTTONS_OK,
+                true
+            );
+            errdialog.run();
+            return;
+        }
+
+        last_used_dir = fn.substr(0, fn.rfind("/") + 1);
+        global_filename = fn;
+        update_window_title();
+
+        m_adjust_bpm->set_value( m_mainperf->get_bpm());
+
+        m_adjust_swing_amount8->set_value( m_mainperf->get_swing_amount8());
+        m_adjust_swing_amount16->set_value( m_mainperf->get_swing_amount16());
     }
-
-    last_used_dir = fn.substr(0, fn.rfind("/") + 1);
-    global_filename = fn;
-    update_window_title();
-
-    m_adjust_bpm->set_value( m_mainperf->get_bpm());
-
-    m_adjust_swing_amount8->set_value( m_mainperf->get_swing_amount8());
-    m_adjust_swing_amount16->set_value( m_mainperf->get_swing_amount16());
 }
 
 /*callback function*/

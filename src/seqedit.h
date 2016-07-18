@@ -244,6 +244,7 @@ private:
     void on_realize();
 
     bool timeout();
+    sigc::connection conn;
 
     void do_action( int a_action, int a_var );
 

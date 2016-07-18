@@ -1536,13 +1536,22 @@ seqedit::on_realize()
 {
     // we need to do the default realize
     Gtk::Window::on_realize();
-    Glib::signal_timeout().connect(mem_fun(*this, &seqedit::timeout),
+    conn = Glib::signal_timeout().connect(mem_fun(*this, &seqedit::timeout),
                                    c_redraw_ms);
 }
 
 bool
 seqedit::timeout()
 {
+    if (m_seq->get_delete())
+    {
+        printf("seqedit timeout delete\n");
+        m_seq->set_delete(false);
+        //conn.disconnect();
+        on_delete_event(NULL);
+        return false;
+    }
+
     if (m_seq->get_raise())
     {
         m_seq->set_raise(false);
@@ -1587,7 +1596,7 @@ seqedit::~seqedit()
 bool
 seqedit::on_delete_event(GdkEventAny *a_event)
 {
-    //printf( "seqedit::on_delete_event()\n" );
+    printf( "seqedit::on_delete_event()\n" );
     m_seq->set_recording( false );
     m_mainperf->get_master_midi_bus()->set_sequence_input( false, m_seq );
     //m_mainperf->get_master_midi_bus()->set_sequence_input( false, NULL );
